@@ -34,7 +34,7 @@ if (getGradle().startParameter.taskRequests.toString().contains("Release") && us
 
 android {
   namespace = "com.quran.labs.androidquran"
-
+applicationId = "com.radwan.almushaf_aljame"
   defaultConfig {
     versionCode = 3630
     versionName = "3.6.3"
