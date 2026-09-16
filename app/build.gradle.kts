@@ -33,7 +33,7 @@ if (getGradle().startParameter.taskRequests.toString().contains("Release") && us
 }
 
 android {
-  namespace = "com.quran.labs.androidquran"
+  namespace = "com.radwan.almushaf_aljame"
 
   defaultConfig {
     versionCode = 3630
