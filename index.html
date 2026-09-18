@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>تطبيق نختم المطور</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent-color: #10b981;
+            --accent-hover: #059669;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-gradient);
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+
+        /* العداد العلوي للحسنات */
+        .top-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-box {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .stat-box span {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* أدوات التحكم بحجم الخط */
+        .font-controls button {
+            background: none;
+            border: 1px solid var(--text-muted);
+            color: var(--text-main);
+            border-radius: 5px;
+            padding: 2px 8px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        /* منطقة عرض الآية والتفسير */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding: 10px;
+        }
+
+        .verse-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 25px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .verse-text {
+            font-size: 1.8rem;
+            line-height: 1.8;
+            font-weight: 600;
+            color: #ffe082; /* لون ذهبي هادئ ومريح للآية */
+            margin-bottom: 20px;
+            transition: font-size 0.2s ease;
+        }
+
+        .verse-info {
+            font-size: 1rem;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* صندوق التفسير المخفي والظاهر */
+        .tafseer-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            text-align: justify;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* الأزرار والتفاعل */
+        .audio-btn {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--accent-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .audio-btn.playing {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .bottom-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-next {
+            background: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 16px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-next:active {
+            background: var(--accent-hover);
+            transform: scale(0.98);
+        }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-sub {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 12px;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .loading { opacity: 0.3; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- شريط البيانات العلوي -->
+        <div class="top-stats">
+            <div class="stat-box">الأجر المتوقع: <span id="hasanatCount">0</span> حسنة</div>
+            <div class="font-controls">
+                <button onclick="changeFontSize(2)">خط +</button>
+                <button onclick="changeFontSize(-2)">خط -</button>
+            </div>
+        </div>
+
+        <!-- منطقة الآية والتفسير -->
+        <div class="content-area">
+            <div class="verse-card" id="mainCard">
+                <button id="audioBtn" class="audio-btn" onclick="toggleAudio()">
+                    <span>🔊 استماع للآية</span>
+                </button>
+                <div id="verseText" class="verse-text">جاري تحميل آية مباركة...</div>
+                <div id="verseInfo" class="verse-info"></div>
+                <div id="tafseerBox" class="tafseer-box"></div>
+            </div>
+        </div>
+
+        <!-- الأزرار السفلية للموبايل -->
+        <div class="bottom-actions">
+            <button class="btn-next" onclick="fetchNewVerse()">آية تالية ✦</button>
+            <div class="secondary-actions">
+                <button class="btn-sub" onclick="toggleTafseer()">📖 التفسير</button>
+                <button class="btn-sub" onclick="shareVerse()">🔗 مشاركة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentVerseNum = 1;
+        let currentShareText = "";
+        let audioObject = null;
+        let isPlaying = false;
+        let currentFontSize = 1.8;
+
+        async function fetchNewVerse() {
+            // إيقاف الصوت القديم إذا كان يعمل
+            stopAudio();
+
+            const textEl = document.getElementById('verseText');
+            const infoEl = document.getElementById('verseInfo');
+            const tafseerEl = document.getElementById('tafseerBox');
+            const hasanatEl = document.getElementById('hasanatCount');
+            
+            textEl.classList.add('loading');
+            tafseerEl.style.display = "none"; 
+
+            // اختيار آية عشوائية
+            currentVerseNum = Math.floor(Math.random() * 6236) + 1;
+
+            try {
+                // جلب نص الآية والتفسير الميسر معاً لسرعة الأداء
+                const response = await fetch(`https://alquran.cloud{currentVerseNum}/editions/quran-uthmani,ar.jalalayn`);
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    const quranData = data.data[0];
+                    const tafseerData = data.data[1];
+
+                    textEl.classList.remove('loading');
+                    textEl.innerText = `﴿ ${quranData.text} ﴾`;
+                    infoEl.innerText = `سورة ${quranData.surah.name} • آية ${quranData.numberInSurah}`;
+                    tafseerEl.innerText = `التفسير: ${tafseerData.text}`;
+                    
+                    // حساب الحسنات تلقائياً (عدد الحروف الخالية من التشكيل تقريبياً مضروباً في 10)
+                    const cleanText = quranData.text.replace(/[\u064B-\u0652]/g, ""); 
+                    hasanatEl.innerText = cleanText.length * 10;
+
+                    currentShareText = `﴿ ${quranData.text} ﴾\n[سورة ${quranData.surah.name} - آية ${quranData.numberInSurah}]\n\nتفسيرها: ${tafseerData.text}`;
+                }
+            } catch (e) {
+                textEl.innerText = "تأكد من اتصال هاتفك بالإنترنت..";
+                textEl.classList.remove('loading');
+            }
+        }
+
+        // تشغيل وإيقاف تلاوة الآية بصوت العفاسي
+        function toggleAudio() {
+            const btn = document.getElementById('audioBtn');
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                btn.innerHTML = "<span>🛑 إيقاف التلاوة</span>";
+                btn.classList.add('playing');
+                // رابط جلب الآية صوتياً بصوت مشاري العفاسي
+                audioObject = new Audio(`https://islamic.network{currentVerseNum}.mp3`);
+                audioObject.play();
+                isPlaying = true;
+                
+                audioObject.onended = () => stopAudio();
+            }
+        }
+
+        function stopAudio() {
+            const btn = document.getElementById('audioBtn');
+            if (audioObject) {
+                audioObject.pause();
+                audioObject = null;
+            }
+            btn.innerHTML = "<span>🔊 استماع للآية</span>";
+            btn.classList.remove('playing');
+            isPlaying = false;
+        }
+
